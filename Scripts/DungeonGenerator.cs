@@ -1,156 +1,207 @@
 using Godot;
 using System;
 using System.Collections.Generic;
+using System.Reflection.Metadata;
 using System.Runtime.CompilerServices;
+using System.Runtime.ConstrainedExecution;
 
 public partial class DungeonGenerator : Node
 {
+	//if you read the old comments i was writing over some heartbreak stuff
+	//im going to get rid of those momentos with the new year
+	//it's time to keep going on code code code 
+    // Called when the node enters the scene tree for the first time.
+    private Random random = new Random();
+    private static int dungeonWidth = 5;
+    private static int dungeonHeight = 5;
 
-	public static int dungeonWidth = 10;
-	public static int dungeonHeight = 10;
+    private int minimumRoomCount = 10; //absolute minimum = 2 (boss/exit and spawn)
 
-	public static int tileX = 30;
-	public static int tileZ = 30; //this is 1/2 the size and is to be used as a scale factor
-								  //eg 3 from the right in the matrix is 3*15=45 in global coordinates
+    private Room[,] dungeon = new Room[dungeonWidth, dungeonHeight];
+    private PackedScene spawnRoom = GD.Load<PackedScene>("res://Assets/Rooms/spawn.tscn");
+    private static PackedScene fourWay = GD.Load<PackedScene>("res://Assets/Rooms/4_way.tscn");
+    public static int tileX = 30;
+    public static int tileZ = 30; //this is 1/2 the size and is to be used as a scale factor
+                                  //eg 3 from the right in the matrix is 3*15=45 in global coordinates
 
-	private static PackedScene fourWay = GD.Load<PackedScene>("res://Assets/Rooms/4_way.tscn");
-	private static PackedScene spawnRoom = GD.Load<PackedScene>("res://Assets/Rooms/spawn.tscn");
+    //rotations are counter clockwise
 
-	class Room
-	{
-		public int x;
-		public int z;
-		public int rotation;
-		public bool north = false; //true == this has an available entrance
-		public bool east = false;
-		public bool west = false;
-		public bool south = false;
-		public PackedScene roomModel;
-		public Room(int x, int z, int rot, bool north, bool east, bool south, bool west, PackedScene scene)
-		{
-			this.x = x;
-			this.z = z;
-			rotation = rot;
-			this.north = north;
-			this.east = east;
-			this.south = south;
-			this.west = west;
-			roomModel = scene;
-		}
+    private const int globalNorth = 180;
+    private const int globalEast = 90;
+    private const int globalSouth = 0;
+    private const int globalWest = 270;
 
-	}
+    class Room
+    {
+        public int x;
+        public int z;
+        public int rotation;
+        public bool N;
+        public bool E;
+        public bool S;
+        public bool W;
+        public PackedScene roomType;
+        public bool isNutty; //it's not a one by one
+        public Room(int x, int z, int rotation, bool N, bool E, bool S, bool W, PackedScene roomType, bool isNutty)
+        {
+            this.x = x;
+            this.z = z;
+            this.rotation = rotation;
+            this.N = N;
+            this.E = E;
+            this.S = S;
+            this.W = W;
+            this.roomType = roomType;
+            this.isNutty = isNutty;
+        }
+    }
 
-	private Random random = new Random();
+    public override void _Ready()
+    {
+        StartRoom();
+        // Node3D roomModel = spawnRoom.Instantiate<Node3D>();
+        // AddChild(roomModel);
+        // roomModel.GlobalPosition = new Vector3(50, 0, 50);
+        // roomModel.Rotate(Vector3.Up, Mathf.DegToRad(90));
+    }
 
-	private int startX = 0;
-	private int startZ = 0;
-	private Room[,] dungeon = new Room[dungeonWidth, dungeonHeight];
+    private void StartRoom()
+    {
+        int startX = random.Next(dungeonWidth);
+        int startZ = random.Next(dungeonHeight);
+        int randomRotation = random.Next(4) * 90;
+        int nextX = startX;
+        int nextZ = startZ;
+        //startRoom points south by default
+        switch (randomRotation)
+        {
+            case 0:
+                nextZ++;
+                break;
 
-	//0xxxxx
-	//z
-	//z
-	//z
+            case 90:
+                nextX++;
+                break;
 
-	// Called when the node enters the scene tree for the first time.
-	public override void _Ready()
-	{
-		spawnStartRoom();
-	}
+            case 180:
+                nextZ--;
+                break;
 
-	private void spawnMathTile(Room roomToSpawn)
-	{
+            case 270:
+                nextX--;
+                break;
+        }
 
-		//TODO: comeback to this as this is where you left off
-		//to save the moment: 12/12/2024 12:41PM -> listening to buzz buzz propehcy
-		//feeling p emotional given something i wont say for the sake of self preservation when i read this ater
-		int x = roomToSpawn.x;
-		int z = roomToSpawn.z;
-		if (x < 0 || x > dungeonWidth || z < 0 || z > dungeonHeight)
-		{
-			return;
-		}
-		if (dungeon[z, x] != null)
-		{
-			return;
-		}
-		dungeon[z, x] = roomToSpawn;
-		spawnTileLiteral((x * tileX) + (tileX / 2), (z * tileZ) + (tileZ / 2), 0, roomToSpawn.roomModel);
-		if (roomToSpawn.north && z - 1 > 0 && dungeon[z-1, x] == null)
-		{
-			spawnTileLiteral((x * tileX) + (tileX / 2), ((z - 1) * tileZ) + (tileZ / 2), 0, fourWay);
-		}
-		if (roomToSpawn.east && x + 1 < dungeonWidth && dungeon[z, x+1] == null)
-		{
-			spawnTileLiteral(((x+1) * tileX) + (tileX / 2), (z * tileZ) + (tileZ / 2), 0, fourWay);
-		}
-		if (roomToSpawn.south && z + 1 < dungeonHeight && dungeon[z+1, x] == null)
-		{
-			spawnTileLiteral((x * tileX) + (tileX / 2), ((z + 1) * tileZ) + (tileZ / 2), 0, fourWay);
-		}
-		if (roomToSpawn.west && x - 1 > 0 && dungeon[z, x-1] == null)
-		{
-			spawnTileLiteral(((x-1) * tileX) + (tileX / 2), (z * tileZ) + (tileZ / 2), 0, fourWay);
-		}
-	}
-	private void spawnStartRoom()
-	{
-		startX = 5;//random.Next(5);
-		startZ = 2;//random.Next(5);
-		int randomRotation = random.Next(4) * 90;
-		int oldX = startX;
-		int oldZ = startZ;
-		//startRoom points south by default
-		switch (randomRotation)
-		{
-			case 0:
-				startZ++;
-				break;
+        if (nextX < 0 || nextX == dungeonWidth || nextZ < 0 || nextZ == dungeonWidth)
+        {
+            StartRoom();
+            return;
+        }
+        Room roomToSpawn = new Room(startX, startZ, randomRotation, randomRotation == 180, randomRotation == 270, randomRotation == 0, randomRotation == 90, spawnRoom, true);
+        dungeon[startZ, startX] = roomToSpawn;
+        Node3D roomModel = roomToSpawn.roomType.Instantiate<Node3D>();
+        AddChild(roomModel);
+        int globalX = (roomToSpawn.x * tileX) + (tileX / 2);
+        int globalZ = (roomToSpawn.z * tileZ) + (tileZ / 2);
+        roomModel.GlobalPosition = new Vector3(globalX, 0, globalZ);
+        roomModel.Rotate(Vector3.Up, Mathf.DegToRad(randomRotation));
+        OneByOne(new Room(nextX, nextZ, random.Next(4) * 90, randomRotation == globalSouth, randomRotation == globalWest, randomRotation == globalNorth, randomRotation == globalEast, fourWay, false));
+    }
 
-			case 90:
-				startX++;
-				break;
+    private bool roomBoundValidation(int x, int z)
+    {
+        if (x >= 0 && x < dungeonWidth && z >= 0 && z < dungeonHeight)
+        {
+            return dungeon[z, x] == null;
+        }
+        return false;
+    }
 
-			case 180:
-				startZ--;
-				break;
+    private void OneByOne(Room room)
+    {
+        var directions = new[]
+        {
+        new { Direction = "N", CheckX = room.x, CheckZ = room.z - 1 },
+        new { Direction = "E", CheckX = room.x + 1, CheckZ = room.z },
+        new { Direction = "S", CheckX = room.x, CheckZ = room.z + 1 },
+        new { Direction = "W", CheckX = room.x - 1, CheckZ = room.z }
+        };
 
-			case 270:
-				startX--;
-				break;
-		}
+        dungeon[room.z, room.x] = room;
 
-		if (startX < 0 || startX == dungeonWidth || startZ < 0 || startZ == dungeonWidth)
-		{
-			spawnStartRoom();
-			return;
-		}
+        foreach (var dir in directions)
+        {
+            if (roomBoundValidation(dir.CheckX, dir.CheckZ))
+            {
+                // Update the corresponding direction
+                switch (dir.Direction)
+                {
+                    case "N":
+                        if (!room.N) 
+                        {
+                            int answer = random.Next(2);
+                            GD.Print(answer);
+                            GD.Print(answer==0);
+                            dungeon[room.z, room.x].N = random.Next(2) == 0;
+                        }
+                        if (dungeon[room.z, room.x].N)
+                        {
+                            finalonbeyone(new Room(room.x, room.z - 1, 0, false, false, false, false, fourWay, false));
+                        }
+                        break;
+                    case "E":
+                        if (!room.E) dungeon[room.z, room.x].E = random.Next(2) == 0;
+                        if (dungeon[room.z, room.x].E)
+                        {
+                            finalonbeyone(new Room(room.x+1, room.z, 0, false, false, false, false, fourWay, false));
+                        }
+                        break;
+                    case "S":
+                        if (!room.S) dungeon[room.z, room.x].S = random.Next(2) == 0;
+                        if (dungeon[room.z, room.x].S)
+                        {
+                            finalonbeyone(new Room(room.x, room.z + 1, 0, false, false, false, false, fourWay, false));
+                        }
+                        break;
+                    case "W":
+                        if (!room.W) dungeon[room.z, room.x].W = random.Next(2) == 0;
+                        if (dungeon[room.z, room.x].W)
+                        {
+                            finalonbeyone(new Room(room.x-1, room.z , 0, false, false, false, false, fourWay, false));
+                        }
+                        break;
+                }
+            }
+        }
 
-		startX = oldX;
-		startZ = oldZ;
+        // Room nextRoom = new Room(0,0,0,false,false,false,false,fourWay,false);
 
-		Room roomToSpawn = new Room(startX, startZ, randomRotation, true, true, true, true, spawnRoom);
+        Node3D roomModel = room.roomType.Instantiate<Node3D>();
+        AddChild(roomModel);
+        int globalX = (room.x * tileX) + (tileX / 2);
+        int globalZ = (room.z * tileZ) + (tileZ / 2);
+        roomModel.GlobalPosition = new Vector3(globalX, 0, globalZ);
+        roomModel.Rotate(Vector3.Up, Mathf.DegToRad(room.rotation));
+    }
 
-		spawnMathTile(roomToSpawn);
-	}
+    private void finalonbeyone(Room room)
+    {
+        Node3D roomModel = room.roomType.Instantiate<Node3D>();
+        AddChild(roomModel);
+        int globalX = (room.x * tileX) + (tileX / 2);
+        int globalZ = (room.z * tileZ) + (tileZ / 2);
+        roomModel.GlobalPosition = new Vector3(globalX, 0, globalZ);
+        roomModel.Rotate(Vector3.Up, Mathf.DegToRad(room.rotation));
+    }
 
-	private void spawnTileLiteral(int x, int z, int rotation, PackedScene room)
-	{
-		Node3D roomModel = room.Instantiate<Node3D>();
-		roomModel.GlobalPosition = new Vector3(x, 0, z);
-		// roomModel.GlobalRotate(Vector3.Up, Mathf.DegToRad(rotation));
-		AddChild(roomModel);
-		for (int i = 0; i < dungeon.GetLength(0); i++)
-		{
-			for (int j = 0; j < dungeon.GetLength(1); j++)
-			{
-				GD.Print(dungeon[i, j]);
-			}
-		}
-	}
+    private void TShape()
+    {
 
-	// Called every frame. 'delta' is the elapsed time since the previous frame.
-	public override void _Process(double delta)
-	{
+    }
 
-	}
+
+    public override void _Process(double delta)
+    {
+
+    }
 }

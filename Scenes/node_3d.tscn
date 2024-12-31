@@ -5,7 +5,7 @@
 [ext_resource type="Script" path="res://Scripts/knife.cs" id="3_o54ts"]
 [ext_resource type="Texture2D" uid="uid://nlr1fxyixldo" path="res://Assets/Image/crosshair.png" id="3_yqafu"]
 [ext_resource type="PackedScene" uid="uid://cmo5l501io3cy" path="res://Assets/Rooms/4_way.tscn" id="5_3lhln"]
-[ext_resource type="Script" path="res://Scripts/DungeonGenerator.cs" id="6_sb4dl"]
+[ext_resource type="Script" path="res://Scripts/DungeonGenerator.cs" id="6_w8dt7"]
 [ext_resource type="PackedScene" uid="uid://bop6n012a1a6q" path="res://Assets/Rooms/spawn.tscn" id="7_04aao"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_yqg77"]
@@ -147,12 +147,12 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 15, -0.979, 15)
 visible = false
 
 [node name="Dungeon" type="Node3D" parent="."]
-script = ExtResource("6_sb4dl")
+script = ExtResource("6_w8dt7")
 
 [node name="CSGBox3D" parent="." instance=ExtResource("7_04aao")]
 visible = false
 
 [node name="topview" type="Camera3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 75, 100, 75)
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 153, 151, 122)
 current = true
 fov = 90.0
