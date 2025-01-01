@@ -7,19 +7,21 @@ using System.Runtime.ConstrainedExecution;
 
 public partial class DungeonGenerator : Node
 {
-	//if you read the old comments i was writing over some heartbreak stuff
-	//im going to get rid of those momentos with the new year
-	//it's time to keep going on code code code 
+    //if you read the old comments i was writing over some heartbreak stuff
+    //im going to get rid of those momentos with the new year
+    //it's time to keep going on code code code 
     // Called when the node enters the scene tree for the first time.
     private Random random = new Random();
     private static int dungeonWidth = 5;
     private static int dungeonHeight = 5;
 
     private int minimumRoomCount = 10; //absolute minimum = 2 (boss/exit and spawn)
+    private int totalRoomCount = 0;
 
     private Room[,] dungeon = new Room[dungeonWidth, dungeonHeight];
     private PackedScene spawnRoom = GD.Load<PackedScene>("res://Assets/Rooms/spawn.tscn");
     private static PackedScene fourWay = GD.Load<PackedScene>("res://Assets/Rooms/4_way.tscn");
+    private static PackedScene bossRoom = GD.Load<PackedScene>("res://Assets/Rooms/boss.tscn");
     public static int tileX = 30;
     public static int tileZ = 30; //this is 1/2 the size and is to be used as a scale factor
                                   //eg 3 from the right in the matrix is 3*15=45 in global coordinates
@@ -97,6 +99,7 @@ public partial class DungeonGenerator : Node
             StartRoom();
             return;
         }
+        totalRoomCount++;
         Room roomToSpawn = new Room(startX, startZ, randomRotation, randomRotation == 180, randomRotation == 270, randomRotation == 0, randomRotation == 90, spawnRoom, true);
         dungeon[startZ, startX] = roomToSpawn;
         Node3D roomModel = roomToSpawn.roomType.Instantiate<Node3D>();
@@ -121,58 +124,70 @@ public partial class DungeonGenerator : Node
     {
         var directions = new[]
         {
-        new { Direction = "N", CheckX = room.x, CheckZ = room.z - 1 },
-        new { Direction = "E", CheckX = room.x + 1, CheckZ = room.z },
-        new { Direction = "S", CheckX = room.x, CheckZ = room.z + 1 },
-        new { Direction = "W", CheckX = room.x - 1, CheckZ = room.z }
+        new { Direction = "N", CheckX = room.x, CheckZ = room.z - 1, forcedConnection = room.N, opposite = room.S },
+        new { Direction = "E", CheckX = room.x + 1, CheckZ = room.z, forcedConnection = room.E,opposite = room.W },
+        new { Direction = "S", CheckX = room.x, CheckZ = room.z + 1, forcedConnection = room.S,opposite = room.N },
+        new { Direction = "W", CheckX = room.x - 1, CheckZ = room.z, forcedConnection = room.W ,opposite = room.E}
         };
 
         dungeon[room.z, room.x] = room;
+        int doorCount = 0;
+        totalRoomCount++;
 
         foreach (var dir in directions)
         {
             if (roomBoundValidation(dir.CheckX, dir.CheckZ))
             {
+                bool isDoor = random.Next(2) == 0;
+                if(!isDoor)
+                {
+                    continue;
+                }
                 // Update the corresponding direction
                 switch (dir.Direction)
                 {
                     case "N":
-                        if (!room.N) 
+                        if (!room.N)
                         {
-                            dungeon[room.z, room.x].N = random.Next(2) == 0;
-                        }
-                        if (dungeon[room.z, room.x].N)
-                        {
-                            OneByOne(new Room(room.x, room.z - 1, 0, false, false, true, false, fourWay, false));
+                            doorCount++;
+                            dungeon[room.z, room.x].N = true;
+                            OneByOne(new Room(dir.CheckX, dir.CheckZ, 0, dir.Direction == "S", dir.Direction == "W", dir.Direction == "N", dir.Direction == "E", fourWay, false));
                         }
                         break;
                     case "E":
-                        if (!room.E) dungeon[room.z, room.x].E = random.Next(2) == 0;
-                        if (dungeon[room.z, room.x].E)
+                        if (!room.E)
                         {
-                            OneByOne(new Room(room.x+1, room.z, 0, false, false, false, true, fourWay, false));
+                            doorCount++;
+                            dungeon[room.z, room.x].E = true;
+                            OneByOne(new Room(dir.CheckX, dir.CheckZ, 0, dir.Direction == "S", dir.Direction == "W", dir.Direction == "N", dir.Direction == "E", fourWay, false));
                         }
                         break;
                     case "S":
-                        if (!room.S) dungeon[room.z, room.x].S = random.Next(2) == 0;
-                        if (dungeon[room.z, room.x].S)
+                        if (!room.S)
                         {
-                            OneByOne(new Room(room.x, room.z + 1, 0, true, false, false, false, fourWay, false));
+                            doorCount++;
+                            dungeon[room.z, room.x].E = true;
+                            OneByOne(new Room(dir.CheckX, dir.CheckZ, 0, dir.Direction == "S", dir.Direction == "W", dir.Direction == "N", dir.Direction == "E", fourWay, false));
                         }
                         break;
                     case "W":
-                        if (!room.W) dungeon[room.z, room.x].W = random.Next(2) == 0;
-                        if (dungeon[room.z, room.x].W)
+                        if (!room.W)
                         {
-                            OneByOne(new Room(room.x-1, room.z , 0, false, true, false, false, fourWay, false));
+                            doorCount++;
+                            dungeon[room.z, room.x].E = true;
+                            OneByOne(new Room(dir.CheckX, dir.CheckZ, 0, dir.Direction == "S", dir.Direction == "W", dir.Direction == "N", dir.Direction == "E", fourWay, false));
                         }
                         break;
                 }
             }
         }
-
-        // Room nextRoom = new Room(0,0,0,false,false,false,false,fourWay,false);
-
+        if(doorCount == 0)
+        {
+            if(totalRoomCount == minimumRoomCount)
+            {
+                dungeon[room.z,room.x].roomType = bossRoom;
+            }
+        }
         Node3D roomModel = room.roomType.Instantiate<Node3D>();
         AddChild(roomModel);
         int globalX = (room.x * tileX) + (tileX / 2);

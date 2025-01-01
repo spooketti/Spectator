@@ -1,0 +1,14 @@
+[gd_scene load_steps=3 format=3 uid="uid://ds1013157x1g3"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ebm45"]
+albedo_color = Color(0.999874, 0.367942, 0.30037, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_nl61m"]
+
+[node name="CSGBox3D" type="CSGBox3D"]
+size = Vector3(30, 0.2, 30)
+material = SubResource("StandardMaterial3D_ebm45")
+
+[node name="South" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 15)
+mesh = SubResource("BoxMesh_nl61m")
