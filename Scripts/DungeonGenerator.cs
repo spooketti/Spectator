@@ -139,35 +139,32 @@ public partial class DungeonGenerator : Node
                     case "N":
                         if (!room.N) 
                         {
-                            int answer = random.Next(2);
-                            GD.Print(answer);
-                            GD.Print(answer==0);
                             dungeon[room.z, room.x].N = random.Next(2) == 0;
                         }
                         if (dungeon[room.z, room.x].N)
                         {
-                            finalonbeyone(new Room(room.x, room.z - 1, 0, false, false, false, false, fourWay, false));
+                            OneByOne(new Room(room.x, room.z - 1, 0, false, false, true, false, fourWay, false));
                         }
                         break;
                     case "E":
                         if (!room.E) dungeon[room.z, room.x].E = random.Next(2) == 0;
                         if (dungeon[room.z, room.x].E)
                         {
-                            finalonbeyone(new Room(room.x+1, room.z, 0, false, false, false, false, fourWay, false));
+                            OneByOne(new Room(room.x+1, room.z, 0, false, false, false, true, fourWay, false));
                         }
                         break;
                     case "S":
                         if (!room.S) dungeon[room.z, room.x].S = random.Next(2) == 0;
                         if (dungeon[room.z, room.x].S)
                         {
-                            finalonbeyone(new Room(room.x, room.z + 1, 0, false, false, false, false, fourWay, false));
+                            OneByOne(new Room(room.x, room.z + 1, 0, true, false, false, false, fourWay, false));
                         }
                         break;
                     case "W":
                         if (!room.W) dungeon[room.z, room.x].W = random.Next(2) == 0;
                         if (dungeon[room.z, room.x].W)
                         {
-                            finalonbeyone(new Room(room.x-1, room.z , 0, false, false, false, false, fourWay, false));
+                            OneByOne(new Room(room.x-1, room.z , 0, false, true, false, false, fourWay, false));
                         }
                         break;
                 }
