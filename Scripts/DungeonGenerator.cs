@@ -209,7 +209,6 @@ public partial class DungeonGenerator : Node
                 if (possibleVisitStack.Count > 0)
                 {
                     //if this is somehow fails we are screwed
-                    GD.Print("we're fucked");
                     Room stackedRoom = possibleVisitStack[possibleVisitStack.Count - 1];
                     possibleVisitStack.Remove(possibleVisitStack[possibleVisitStack.Count - 1]);
                     OneByOne(stackedRoom);
