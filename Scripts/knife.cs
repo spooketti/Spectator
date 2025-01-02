@@ -49,8 +49,8 @@ public partial class knife : Node3D
 		if(Intersections.Count > 0)
 		{
 			var collider = (Node3D)Intersections["collider"];
-			// GD.Print("YEONGSU KIM:" + collider.GlobalRotationDegrees.Y);
-			// GD.Print("jonathan" + GlobalRotationDegrees.Y);
+			// GD.Print(collider.GlobalRotationDegrees.Y);
+			// GD.Print(GlobalRotationDegrees.Y);
 			// GD.Print(DotLookVector(GlobalRotation.Y,collider.GlobalRotation.Y)>0.2);
 		}
     }

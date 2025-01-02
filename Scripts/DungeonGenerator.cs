@@ -1,10 +1,6 @@
 using Godot;
 using System;
 using System.Collections.Generic;
-using System.Reflection.Metadata;
-using System.Runtime.CompilerServices;
-using System.Runtime.ConstrainedExecution;
-
 public partial class DungeonGenerator : Node
 {
     //if you read the old comments i was writing over some heartbreak stuff
@@ -64,11 +60,19 @@ public partial class DungeonGenerator : Node
     public override void _Ready()
     {
         player = (Node3D)GetParent().GetNode("Player");
-        StartRoom();
+        // StartRoom();
         // Node3D roomModel = spawnRoom.Instantiate<Node3D>();
         // AddChild(roomModel);
         // roomModel.GlobalPosition = new Vector3(50, 0, 50);
         // roomModel.Rotate(Vector3.Up, Mathf.DegToRad(90));
+    }
+
+    public override void _Input(InputEvent @event)
+    {
+        if(@event is InputEventKey inputEventKey)
+        {
+            StartRoom();
+        }
     }
 
     private void StartRoom()
@@ -174,7 +178,7 @@ public partial class DungeonGenerator : Node
                         {
                             doorCount++;
                             dungeon[room.z, room.x].S = true;
-                           OneByOne(new Room(dir.CheckX, dir.CheckZ, 0, dir.Direction == "South", dir.Direction == "West", dir.Direction == "North", dir.Direction == "East", fourWay, false));
+                            OneByOne(new Room(dir.CheckX, dir.CheckZ, 0, dir.Direction == "South", dir.Direction == "West", dir.Direction == "North", dir.Direction == "East", fourWay, false));
                         }
                         break;
                     case "West":
