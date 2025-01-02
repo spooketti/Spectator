@@ -133,11 +133,13 @@ public partial class DungeonGenerator : Node
         dungeon[room.z, room.x] = room;
         int doorCount = 0;
         totalRoomCount++;
+        bool boundPotential = false;
 
         foreach (var dir in directions)
         {
             if (roomBoundValidation(dir.CheckX, dir.CheckZ))
             {
+                boundPotential = true;
                 bool isDoor = random.Next(2) == 0;
                 if(!isDoor)
                 {
@@ -183,12 +185,22 @@ public partial class DungeonGenerator : Node
         }
         if(doorCount == 0)
         {
+            if(totalRoomCount < minimumRoomCount)
+            {
+                if(boundPotential) //the room had potential to spawn something 
+                {
+                    totalRoomCount--;
+                    OneByOne(room);
+                    return;
+                }
+                //dungeon[room.z,room.x].roomType = bossRoom;
+            }
             if(totalRoomCount == minimumRoomCount)
             {
                 dungeon[room.z,room.x].roomType = bossRoom;
             }
         }
-        Node3D roomModel = room.roomType.Instantiate<Node3D>();
+        Node3D roomModel = dungeon[room.z,room.x].roomType.Instantiate<Node3D>();
         AddChild(roomModel);
         int globalX = (room.x * tileX) + (tileX / 2);
         int globalZ = (room.z * tileZ) + (tileZ / 2);
