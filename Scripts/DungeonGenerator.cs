@@ -11,6 +11,9 @@ public partial class DungeonGenerator : Node
     //im going to get rid of those momentos with the new year
     //it's time to keep going on code code code 
     // Called when the node enters the scene tree for the first time.
+
+    private List<Room> possibleVisitStack = new List<Room>();
+    private Node3D player;
     private Random random = new Random();
     private static int dungeonWidth = 5;
     private static int dungeonHeight = 5;
@@ -60,6 +63,7 @@ public partial class DungeonGenerator : Node
 
     public override void _Ready()
     {
+        player = (Node3D)GetParent().GetNode("Player");
         StartRoom();
         // Node3D roomModel = spawnRoom.Instantiate<Node3D>();
         // AddChild(roomModel);
@@ -108,6 +112,7 @@ public partial class DungeonGenerator : Node
         int globalZ = (roomToSpawn.z * tileZ) + (tileZ / 2);
         roomModel.GlobalPosition = new Vector3(globalX, 0, globalZ);
         roomModel.Rotate(Vector3.Up, Mathf.DegToRad(randomRotation));
+        player.GlobalPosition = new Vector3(globalX, 200, globalZ);
         OneByOne(new Room(nextX, nextZ, random.Next(4) * 90, randomRotation == globalSouth, randomRotation == globalWest, randomRotation == globalNorth, randomRotation == globalEast, fourWay, false));
     }
 
@@ -124,10 +129,10 @@ public partial class DungeonGenerator : Node
     {
         var directions = new[]
         {
-        new { Direction = "N", CheckX = room.x, CheckZ = room.z - 1, forcedConnection = room.N, opposite = room.S },
-        new { Direction = "E", CheckX = room.x + 1, CheckZ = room.z, forcedConnection = room.E,opposite = room.W },
-        new { Direction = "S", CheckX = room.x, CheckZ = room.z + 1, forcedConnection = room.S,opposite = room.N },
-        new { Direction = "W", CheckX = room.x - 1, CheckZ = room.z, forcedConnection = room.W ,opposite = room.E}
+        new { Direction = "North", CheckX = room.x, CheckZ = room.z - 1, forcedConnection = room.N, opposite = room.S },
+        new { Direction = "East", CheckX = room.x + 1, CheckZ = room.z, forcedConnection = room.E,opposite = room.W },
+        new { Direction = "South", CheckX = room.x, CheckZ = room.z + 1, forcedConnection = room.S,opposite = room.N },
+        new { Direction = "West", CheckX = room.x - 1, CheckZ = room.z, forcedConnection = room.W ,opposite = room.E}
         };
 
         dungeon[room.z, room.x] = room;
@@ -141,71 +146,118 @@ public partial class DungeonGenerator : Node
             {
                 boundPotential = true;
                 bool isDoor = random.Next(2) == 0;
-                if(!isDoor)
+                if (!isDoor)
                 {
                     continue;
                 }
                 // Update the corresponding direction
                 switch (dir.Direction)
                 {
-                    case "N":
+                    case "North":
                         if (!room.N)
                         {
                             doorCount++;
                             dungeon[room.z, room.x].N = true;
-                            OneByOne(new Room(dir.CheckX, dir.CheckZ, 0, dir.Direction == "S", dir.Direction == "W", dir.Direction == "N", dir.Direction == "E", fourWay, false));
+                            OneByOne(new Room(dir.CheckX, dir.CheckZ, 0, dir.Direction == "South", dir.Direction == "West", dir.Direction == "North", dir.Direction == "East", fourWay, false));
                         }
                         break;
-                    case "E":
+                    case "East":
                         if (!room.E)
                         {
                             doorCount++;
                             dungeon[room.z, room.x].E = true;
-                            OneByOne(new Room(dir.CheckX, dir.CheckZ, 0, dir.Direction == "S", dir.Direction == "W", dir.Direction == "N", dir.Direction == "E", fourWay, false));
+                            OneByOne(new Room(dir.CheckX, dir.CheckZ, 0, dir.Direction == "South", dir.Direction == "West", dir.Direction == "North", dir.Direction == "East", fourWay, false));
                         }
                         break;
-                    case "S":
+                    case "South":
                         if (!room.S)
                         {
                             doorCount++;
-                            dungeon[room.z, room.x].E = true;
-                            OneByOne(new Room(dir.CheckX, dir.CheckZ, 0, dir.Direction == "S", dir.Direction == "W", dir.Direction == "N", dir.Direction == "E", fourWay, false));
+                            dungeon[room.z, room.x].S = true;
+                           OneByOne(new Room(dir.CheckX, dir.CheckZ, 0, dir.Direction == "South", dir.Direction == "West", dir.Direction == "North", dir.Direction == "East", fourWay, false));
                         }
                         break;
-                    case "W":
+                    case "West":
                         if (!room.W)
                         {
                             doorCount++;
-                            dungeon[room.z, room.x].E = true;
-                            OneByOne(new Room(dir.CheckX, dir.CheckZ, 0, dir.Direction == "S", dir.Direction == "W", dir.Direction == "N", dir.Direction == "E", fourWay, false));
+                            dungeon[room.z, room.x].W = true;
+                            OneByOne(new Room(dir.CheckX, dir.CheckZ, 0, dir.Direction == "South", dir.Direction == "West", dir.Direction == "North", dir.Direction == "East", fourWay, false));
                         }
                         break;
                 }
             }
         }
-        if(doorCount == 0)
+        if (boundPotential && doorCount < 3)
         {
-            if(totalRoomCount < minimumRoomCount)
+            possibleVisitStack.Add(room);
+        }
+        if (doorCount == 0)
+        {
+            if (totalRoomCount < minimumRoomCount)
             {
-                if(boundPotential) //the room had potential to spawn something 
+                if (boundPotential) //the room had potential to spawn something 
                 {
+                    if (doorCount < 3)
+                    {
+                        possibleVisitStack.Remove(possibleVisitStack[possibleVisitStack.Count - 1]);
+                    }
                     totalRoomCount--;
                     OneByOne(room);
                     return;
                 }
-                //dungeon[room.z,room.x].roomType = bossRoom;
+                if (possibleVisitStack.Count > 0)
+                {
+                    //if this is somehow fails we are screwed
+                    GD.Print("we're fucked");
+                    Room stackedRoom = possibleVisitStack[possibleVisitStack.Count - 1];
+                    possibleVisitStack.Remove(possibleVisitStack[possibleVisitStack.Count - 1]);
+                    OneByOne(stackedRoom);
+                    return;
+                }
             }
-            if(totalRoomCount == minimumRoomCount)
+            if (totalRoomCount == minimumRoomCount)
             {
-                dungeon[room.z,room.x].roomType = bossRoom;
+                dungeon[room.z, room.x].roomType = bossRoom;
             }
         }
-        Node3D roomModel = dungeon[room.z,room.x].roomType.Instantiate<Node3D>();
+
+        Node3D roomModel = dungeon[room.z, room.x].roomType.Instantiate<Node3D>();
         AddChild(roomModel);
+        foreach (var dir in directions)
+        {
+            switch (dir.Direction)
+            {
+                case "North":
+                    if (dungeon[room.z, room.x].N)
+                    {
+                        roomModel.GetNode(dir.Direction).QueueFree();
+                    }
+                    break;
+                case "East":
+                    if (dungeon[room.z, room.x].E)
+                    {
+                        roomModel.GetNode(dir.Direction).QueueFree();
+                    }
+                    break;
+                case "South":
+                    if (dungeon[room.z, room.x].S)
+                    {
+                        roomModel.GetNode(dir.Direction).QueueFree();
+                    }
+                    break;
+                case "West":
+                    if (dungeon[room.z, room.x].W)
+                    {
+                        roomModel.GetNode(dir.Direction).QueueFree();
+                    }
+                    break;
+            }
+        }
         int globalX = (room.x * tileX) + (tileX / 2);
         int globalZ = (room.z * tileZ) + (tileZ / 2);
         roomModel.GlobalPosition = new Vector3(globalX, 0, globalZ);
-        roomModel.Rotate(Vector3.Up, Mathf.DegToRad(room.rotation));
+        // roomModel.Rotate(Vector3.Up, Mathf.DegToRad(room.rotation));
     }
 
     private void finalonbeyone(Room room)

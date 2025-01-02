@@ -1,31 +1,24 @@
-[gd_scene load_steps=5 format=3 uid="uid://cmo5l501io3cy"]
+[gd_scene load_steps=2 format=3 uid="uid://cmo5l501io3cy"]
 
-[sub_resource type="BoxMesh" id="BoxMesh_ggl3g"]
-
-[sub_resource type="BoxMesh" id="BoxMesh_b3qt0"]
-
-[sub_resource type="BoxMesh" id="BoxMesh_wopob"]
-
-[sub_resource type="BoxMesh" id="BoxMesh_ntbpc"]
+[sub_resource type="BoxMesh" id="BoxMesh_sqpns"]
 
 [node name="4way" type="CSGBox3D"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 15, -0.9794, 15)
 use_collision = true
 size = Vector3(30, 0.2, 30)
 
-[node name="door" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 15, 1, 0)
-mesh = SubResource("BoxMesh_ggl3g")
+[node name="North" type="CSGMesh3D" parent="."]
+transform = Transform3D(30, 0, 0, 0, 10, 0, 0, 0, 1, 0, 5, -15)
+mesh = SubResource("BoxMesh_sqpns")
 
-[node name="door2" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, -15)
-mesh = SubResource("BoxMesh_b3qt0")
-skeleton = NodePath("../..")
+[node name="South" type="CSGMesh3D" parent="."]
+transform = Transform3D(30, 0, 0, 0, 10, 0, 0, 0, 1, 0, 5, 15)
+mesh = SubResource("BoxMesh_sqpns")
 
-[node name="door3" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -15, 1, 0)
-mesh = SubResource("BoxMesh_wopob")
+[node name="East" type="CSGMesh3D" parent="."]
+transform = Transform3D(-1.31134e-06, 0, 1, 0, 10, 0, -30, 0, -4.37114e-08, 15, 5, 0)
+mesh = SubResource("BoxMesh_sqpns")
 
-[node name="door4" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 15)
-mesh = SubResource("BoxMesh_ntbpc")
+[node name="West" type="CSGMesh3D" parent="."]
+transform = Transform3D(-1.31134e-06, 0, 1, 0, 10, 0, -30, 0, -4.37114e-08, -15, 5, 0)
+mesh = SubResource("BoxMesh_sqpns")

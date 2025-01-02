@@ -57,71 +57,72 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 15, -1.979, 15)
 use_collision = true
 size = Vector3(30, 0.2, 30)
 
-[node name="CharacterBody3D" type="CharacterBody3D" parent="."]
+[node name="Player" type="CharacterBody3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 0.81419, 4)
 script = ExtResource("1_ng0af")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="CharacterBody3D"]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Player"]
 shape = SubResource("CapsuleShape3D_hld2f")
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="CharacterBody3D"]
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Player"]
 layers = 2
 mesh = SubResource("CapsuleMesh_3i5q7")
 
-[node name="Head" type="Node3D" parent="CharacterBody3D"]
+[node name="Head" type="Node3D" parent="Player"]
 transform = Transform3D(-1, 0, -8.74228e-08, 0, 1, 0, 8.74228e-08, 0, -1, 0, 1, 0)
 
-[node name="CamRot" type="Node3D" parent="CharacterBody3D/Head"]
+[node name="CamRot" type="Node3D" parent="Player/Head"]
 
-[node name="Camera3D" type="Camera3D" parent="CharacterBody3D/Head/CamRot"]
+[node name="Camera3D" type="Camera3D" parent="Player/Head/CamRot"]
 rotation_order = 0
 cull_mask = 1048573
+current = true
 
-[node name="Node3D" type="Node3D" parent="CharacterBody3D/Head/CamRot/Camera3D"]
+[node name="Node3D" type="Node3D" parent="Player/Head/CamRot/Camera3D"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.85, -0.9, -1.55702)
 
-[node name="knifeTest" type="Node3D" parent="CharacterBody3D/Head/CamRot/Camera3D"]
+[node name="knifeTest" type="Node3D" parent="Player/Head/CamRot/Camera3D"]
 transform = Transform3D(-1, 0, 8.74228e-08, 0, 1, 0, -8.74228e-08, 0, -1, 7.15256e-07, 0, -2)
 script = ExtResource("3_o54ts")
 
-[node name="Node3D" type="Node3D" parent="CharacterBody3D/Head/CamRot/Camera3D/knifeTest"]
+[node name="Node3D" type="Node3D" parent="Player/Head/CamRot/Camera3D/knifeTest"]
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="CharacterBody3D/Head/CamRot/Camera3D/knifeTest/Node3D"]
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Player/Head/CamRot/Camera3D/knifeTest/Node3D"]
 mesh = SubResource("BoxMesh_5bigq")
 
-[node name="CenterContainer" type="CenterContainer" parent="CharacterBody3D/Head/CamRot/Camera3D"]
+[node name="CenterContainer" type="CenterContainer" parent="Player/Head/CamRot/Camera3D"]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="TextureRect" type="TextureRect" parent="CharacterBody3D/Head/CamRot/Camera3D/CenterContainer"]
+[node name="TextureRect" type="TextureRect" parent="Player/Head/CamRot/Camera3D/CenterContainer"]
 layout_mode = 2
 texture = ExtResource("3_yqafu")
 
-[node name="Inventory" type="Node3D" parent="CharacterBody3D"]
+[node name="Inventory" type="Node3D" parent="Player"]
 visible = false
 script = ExtResource("2_wvbkp")
 
-[node name="Node3D" type="Node3D" parent="CharacterBody3D/Inventory"]
+[node name="Node3D" type="Node3D" parent="Player/Inventory"]
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="CharacterBody3D/Inventory/Node3D"]
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Player/Inventory/Node3D"]
 layers = 2
 mesh = SubResource("BoxMesh_bkwrc")
 
-[node name="Node3D2" type="Node3D" parent="CharacterBody3D/Inventory"]
+[node name="Node3D2" type="Node3D" parent="Player/Inventory"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.66576, 0, 0)
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="CharacterBody3D/Inventory/Node3D2"]
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Player/Inventory/Node3D2"]
 layers = 2
 mesh = SubResource("BoxMesh_bkwrc")
 surface_material_override/0 = SubResource("StandardMaterial3D_ievqj")
 
-[node name="Node3D3" type="Node3D" parent="CharacterBody3D/Inventory"]
+[node name="Node3D3" type="Node3D" parent="Player/Inventory"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.5844, 0, 0)
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="CharacterBody3D/Inventory/Node3D3"]
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Player/Inventory/Node3D3"]
 layers = 2
 mesh = SubResource("BoxMesh_bkwrc")
 surface_material_override/0 = SubResource("StandardMaterial3D_seyun")
@@ -130,7 +131,6 @@ surface_material_override/0 = SubResource("StandardMaterial3D_seyun")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.24557, -2.88642)
 
 [node name="Camera3D" type="Camera3D" parent="."]
-current = true
 
 [node name="CSGMesh3D" type="CSGMesh3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.879, 0, 0)
