@@ -1,6 +1,7 @@
 using Godot;
 using System;
 using System.Collections.Generic;
+using System.IO.IsolatedStorage;
 public partial class DungeonGenerator : Node
 {
     //if you read the old comments i was writing over some heartbreak stuff
@@ -14,8 +15,9 @@ public partial class DungeonGenerator : Node
     private static int dungeonWidth = 5;
     private static int dungeonHeight = 5;
 
-    private int minimumRoomCount = 10; //absolute minimum = 2 (boss/exit and spawn)
+    private int minimumRoomCount = 20; //absolute minimum = 2 (boss/exit and spawn)
     private int totalRoomCount = 0;
+    private bool spawnedBossRoom = false;
 
     private Room[,] dungeon = new Room[dungeonWidth, dungeonHeight];
     private PackedScene spawnRoom = GD.Load<PackedScene>("res://Assets/Rooms/spawn.tscn");
@@ -60,19 +62,11 @@ public partial class DungeonGenerator : Node
     public override void _Ready()
     {
         player = (Node3D)GetParent().GetNode("Player");
-        // StartRoom();
+        StartRoom();
         // Node3D roomModel = spawnRoom.Instantiate<Node3D>();
         // AddChild(roomModel);
         // roomModel.GlobalPosition = new Vector3(50, 0, 50);
         // roomModel.Rotate(Vector3.Up, Mathf.DegToRad(90));
-    }
-
-    public override void _Input(InputEvent @event)
-    {
-        if(@event is InputEventKey inputEventKey)
-        {
-            StartRoom();
-        }
     }
 
     private void StartRoom()
@@ -85,19 +79,19 @@ public partial class DungeonGenerator : Node
         //startRoom points south by default
         switch (randomRotation)
         {
-            case 0:
+            case globalSouth:
                 nextZ++;
                 break;
 
-            case 90:
+            case globalEast:
                 nextX++;
                 break;
 
-            case 180:
+            case globalNorth:
                 nextZ--;
                 break;
 
-            case 270:
+            case globalWest:
                 nextX--;
                 break;
         }
@@ -131,6 +125,7 @@ public partial class DungeonGenerator : Node
 
     private void OneByOne(Room room)
     {
+        GD.Print(totalRoomCount);
         var directions = new[]
         {
         new { Direction = "North", CheckX = room.x, CheckZ = room.z - 1, forcedConnection = room.N, opposite = room.S },
@@ -143,7 +138,13 @@ public partial class DungeonGenerator : Node
         int doorCount = 0;
         totalRoomCount++;
         bool boundPotential = false;
-
+        bool isBoss = false;
+        if (totalRoomCount == minimumRoomCount)
+        {
+            room.roomType = bossRoom;
+            BossRoom(room);
+            return;
+        }
         foreach (var dir in directions)
         {
             if (roomBoundValidation(dir.CheckX, dir.CheckZ))
@@ -192,11 +193,12 @@ public partial class DungeonGenerator : Node
                 }
             }
         }
-        if (boundPotential && doorCount < 3)
+
+        if (boundPotential && doorCount < 3 && !isBoss)
         {
             possibleVisitStack.Add(room);
         }
-        if (doorCount == 0)
+        if (doorCount == 0 && !isBoss)
         {
             if (totalRoomCount < minimumRoomCount)
             {
@@ -219,11 +221,8 @@ public partial class DungeonGenerator : Node
                     return;
                 }
             }
-            if (totalRoomCount == minimumRoomCount)
-            {
-                dungeon[room.z, room.x].roomType = bossRoom;
-            }
         }
+
 
         Node3D roomModel = dungeon[room.z, room.x].roomType.Instantiate<Node3D>();
         AddChild(roomModel);
@@ -257,20 +256,36 @@ public partial class DungeonGenerator : Node
                     break;
             }
         }
+
         int globalX = (room.x * tileX) + (tileX / 2);
         int globalZ = (room.z * tileZ) + (tileZ / 2);
         roomModel.GlobalPosition = new Vector3(globalX, 0, globalZ);
         // roomModel.Rotate(Vector3.Up, Mathf.DegToRad(room.rotation));
     }
 
-    private void finalonbeyone(Room room)
+    private void BossRoom(Room room)
     {
-        Node3D roomModel = room.roomType.Instantiate<Node3D>();
+        dungeon[room.z, room.x] = room;
+        Node3D roomModel = bossRoom.Instantiate<Node3D>();
         AddChild(roomModel);
         int globalX = (room.x * tileX) + (tileX / 2);
         int globalZ = (room.z * tileZ) + (tileZ / 2);
         roomModel.GlobalPosition = new Vector3(globalX, 0, globalZ);
-        roomModel.Rotate(Vector3.Up, Mathf.DegToRad(room.rotation));
+        var directionRotations = new Dictionary<string, int>
+        {
+            { "N", globalNorth },
+            { "E", globalEast },
+            {"S", globalSouth },
+            { "W", globalWest }
+        };
+        foreach (var direction in directionRotations)
+        {
+            if ((bool)dungeon[room.z, room.x].GetType().GetField(direction.Key).GetValue(dungeon[room.z, room.x]))
+            {
+                roomModel.Rotate(Vector3.Up, Mathf.DegToRad(direction.Value));
+                break;
+            }
+        }
     }
 
     private void TShape()

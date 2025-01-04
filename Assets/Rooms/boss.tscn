@@ -1,9 +1,11 @@
-[gd_scene load_steps=3 format=3 uid="uid://ds1013157x1g3"]
+[gd_scene load_steps=4 format=3 uid="uid://ds1013157x1g3"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ebm45"]
 albedo_color = Color(0.999874, 0.367942, 0.30037, 1)
 
 [sub_resource type="BoxMesh" id="BoxMesh_nl61m"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_ig2wn"]
 
 [node name="CSGBox3D" type="CSGBox3D"]
 size = Vector3(30, 0.2, 30)
@@ -12,3 +14,15 @@ material = SubResource("StandardMaterial3D_ebm45")
 [node name="South" type="MeshInstance3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 15)
 mesh = SubResource("BoxMesh_nl61m")
+
+[node name="CSGMesh3D" type="CSGMesh3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 10, 0, 0, 0, 30, -14.5, 5, 0)
+mesh = SubResource("BoxMesh_ig2wn")
+
+[node name="CSGMesh3D2" type="CSGMesh3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 10, 0, 0, 0, 30, 14.5, 5, 0)
+mesh = SubResource("BoxMesh_ig2wn")
+
+[node name="CSGMesh3D3" type="CSGMesh3D" parent="."]
+transform = Transform3D(-4.37114e-08, 0, 30, 0, 10, 0, -1, 0, -1.31134e-06, 0, 5, -15)
+mesh = SubResource("BoxMesh_ig2wn")
